@@ -65,7 +65,6 @@ animation-fill-mode:forwards;
 -webkit-transform: translate(50px, 100px); /* Safari */
 transform: translate(50px, 100px);
 }
-</style>
 alert ("By Ayodele Abigail Please dnt forget to up vote and please volumes up! version 1.1 now with sound");
 <script>
   
