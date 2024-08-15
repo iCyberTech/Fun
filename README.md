@@ -66,7 +66,7 @@ animation-fill-mode:forwards;
 transform: translate(50px, 100px);
 }
 alert ("By Ayodele Abigail Please dnt forget to up vote and please volumes up! version 1.1 now with sound");
-<script>
+</style>
   
 </script>
 </html>
