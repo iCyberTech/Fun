@@ -5,25 +5,7 @@
 		<title>Dancing Girl</title>
 	</head>
 	<body>
-		
-		
-<div class="ani">
-	<img src="https://i.pinimg.com/originals/79/92/9f/79929f83fc265f0d8d5a0cdc561a3876.gif" width=150px height=200px alt="dancing girl" title="Click Me"/>
-	<img src="https://i.pinimg.com/originals/20/5e/b3/205eb3586b9c84599c44c126fedaa7bb.gif" width=150px height=200px alt="dancing girl" title="Click Me"/>
-	 
-</div>
-
- <audio autoplay loop >
-   <source src="https://dl.dropbox.com/s/cffh7t9ogg4l2z8/Havanatttt.mp3"type="audio/mp3" >
-	   
-   </audio>
-	</body>
-
-<!--http://content.presentermedia.com/images/pm_watermark_400x300.png
-http://www.playcast.ru/uploads/2014/06/01/8790502.gif
--->
-
-<style>
+		<style>
   body{
 background-image: url(https://m.media-amazon.com/images/I/51+xsp57KkL._AC_SL1000_.jpg);   
 
@@ -71,5 +53,23 @@ transform: translate(50px, 100px);
 alert ("By Ayodele Abigail Please dnt forget to up vote and please volumes up! version 1.1 now with sound");
 
   
+		
+<div class="ani">
+	<img src="https://i.pinimg.com/originals/79/92/9f/79929f83fc265f0d8d5a0cdc561a3876.gif" width=150px height=200px alt="dancing girl" title="Click Me"/>
+	<img src="https://i.pinimg.com/originals/20/5e/b3/205eb3586b9c84599c44c126fedaa7bb.gif" width=150px height=200px alt="dancing girl" title="Click Me"/>
+	 
+</div>
+
+ <audio autoplay loop >
+   <source src="https://dl.dropbox.com/s/cffh7t9ogg4l2z8/Havanatttt.mp3"type="audio/mp3" >
+	   
+   </audio>
+	</body>
+
+<!--http://content.presentermedia.com/images/pm_watermark_400x300.png
+http://www.playcast.ru/uploads/2014/06/01/8790502.gif
+-->
+
+
 </script>
 </html>
