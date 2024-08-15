@@ -18,7 +18,7 @@
 	   
    </audio>
 	</body>
-</html>
+
 <!--http://content.presentermedia.com/images/pm_watermark_400x300.png
 http://www.playcast.ru/uploads/2014/06/01/8790502.gif
 -->
@@ -64,9 +64,12 @@ animation-fill-mode:forwards;
 -ms-transform: translate(50px, 100px); /* IE 9 */
 -webkit-transform: translate(50px, 100px); /* Safari */
 transform: translate(50px, 100px);
+	</style>
+
+<script>
 }
 alert ("By Ayodele Abigail Please dnt forget to up vote and please volumes up! version 1.1 now with sound");
-</style>
+
   
 </script>
 </html>
