@@ -1,1033 +1,1589 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram-like Chat</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --primary-color: #0088cc;
-            --secondary-color: #f0f2f5;
-            --text-color: #333;
-            --text-secondary: #707579;
-            --online-color: #00c853;
-            --message-bg: #e3f2fd;
-            --message-bg-out: #ffffff;
-            --border-color: #eaeaea;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Webpage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Montserrat', sans-serif;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    html {
+      scroll-behavior: smooth;
+    }
 
-        body {
-            background-color: #f5f5f5;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #f5f5f5;
+      overflow-x: hidden;
+    }
 
-        .chat-container {
-            width: 100%;
-            max-width: 900px;
-            height: 90vh;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            overflow: hidden;
-        }
+    /* Menu Bar with Tap Roller */
+    .menu-bar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 80px;
+      height: 100vh;
+      background-color: #2c3e50;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 20px;
+    }
 
-        /* Sidebar */
-        .sidebar {
-            width: 30%;
-            background-color: var(--secondary-color);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
+    .tap-roller-container {
+      position: relative;
+      width: 40px;
+      height: calc(100vh - 100px);
+      margin-top: 20px;
+      overflow: hidden;
+    }
 
-        .sidebar-header {
-            padding: 15px;
-            background-color: white;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .tap-roller {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      background-color: #3498db;
+      border-radius: 50%;
+      transition: height 0.3s ease;
+    }
 
-        .user-profile {
-            display: flex;
-            align-items: center;
-        }
+    .tap-handle {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      background-color: #2980b9;
+      border-radius: 50%;
+      z-index: 2;
+    }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #ddd;
-            margin-right: 10px;
-            overflow: hidden;
-        }
+    /* Main Content */
+    .main-content {
+      margin-left: 80px;
+      width: calc(100% - 80px);
+      padding: 20px;
+    }
 
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    /* Section with Cards */
+    .section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding: 40px 0;
+      overflow: hidden;
+    }
 
-        .user-name {
-            font-weight: 600;
-        }
+    .section-title {
+      position: fixed;
+      left: 100px;
+      width: 300px;
+      font-size: 3rem;
+      font-weight: 700;
+      color: #2c3e50;
+      z-index: 10;
+      transform: translateY(-50%);
+      top: 50%;
+    }
 
-        .sidebar-icons {
-            display: flex;
-            gap: 15px;
-            color: var(--text-secondary);
-        }
+    .section-title span {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
 
-        .search-bar {
-            padding: 10px;
-            background-color: white;
-            border-bottom: 1px solid var(--border-color);
-        }
+    .cards-container {
+      margin-left: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      width: calc(100% - 400px);
+      position: relative;
+      height: 100%;
+    }
 
-        .search-bar input {
-            width: 100%;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 20px;
-            background-color: var(--secondary-color);
-            font-size: 14px;
-        }
+    .card {
+      background-color: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      width: 100%;
+      max-width: 600px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform: translateX(100%) rotateY(90deg);
+      opacity: 0;
+      height: auto;
+    }
 
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-        }
+    .card.active {
+      transform: translateX(0) rotateY(0deg);
+      opacity: 1;
+      position: relative;
+    }
 
-        .chat-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.2s;
-        }
+    .card-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+    }
 
-        .chat-item:hover {
-            background-color: #f5f5f5;
-        }
+    .card-content {
+      padding: 30px;
+    }
 
-        .chat-item.active {
-            background-color: var(--message-bg);
-        }
+    .card-content h3 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
 
-        .chat-avatar {
-            position: relative;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #ddd;
-            margin-right: 12px;
-            overflow: hidden;
-        }
+    .card-content p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #7f8c8d;
+    }
 
-        .chat-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    /* Profile Section */
+    .profile-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 40px;
+    }
 
-        .online-status {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: var(--online-color);
-            border: 2px solid white;
-        }
+    .profile-img-container {
+      background: linear-gradient(45deg, #d1d9eb, #c1c9db, #d1d9eb);
+      box-shadow: 
+        7px 7px 17px -1px rgba(0,0,0,0.5), 
+        -7px -7px 17px -1px rgba(255,255,255,0.7),
+        inset 3px 3px 10px rgba(0,0,0,0.1),
+        inset -3px -3px 10px rgba(255,255,255,0.5);
+      display: flex;
+      overflow: hidden;
+      height: 180px;
+      width: 180px;
+      margin: 0 auto 20px;
+      border-radius: 40% 60% 65% 35% / 35% 55% 45% 65%;
+      animation: bari 12s linear infinite, float 6s ease-in-out infinite;
+      justify-content: center;
+      align-items: center;
+      padding: 8px;
+      transition: all 0.5s ease;
+    }
 
-        .chat-info {
-            flex: 1;
-            min-width: 0;
-        }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
 
-        .chat-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-        }
+    .profile-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      transition: all 0.5s ease;
+      cursor: pointer;
+      position: relative;
+      z-index: 2;
+      border: 3px solid rgba(255,255,255,0.3);
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
 
-        .chat-time {
-            font-size: 12px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-        }
+    @keyframes bari {
+      0% {border-radius: 40% 60% 65% 35% / 35% 55% 45% 65%; transform: rotate(0deg);}
+      25% {border-radius: 65% 35% 40% 60% / 55% 40% 60% 45%;}
+      50% {border-radius: 35% 65% 50% 50% / 65% 55% 45% 35%;}
+      75% {border-radius: 55% 45% 45% 55% / 60% 45% 55% 40%;}
+      100% {border-radius: 40% 60% 65% 35% / 35% 55% 45% 65%; transform: rotate(360deg);}
+    }
 
-        .chat-preview {
-            font-size: 14px;
-            color: var(--text-secondary);
-            display: flex;
-            justify-content: space-between;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    .profile-img-container::before {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      right: -5px;
+      bottom: -5px;
+      background: linear-gradient(45deg, #0077b5, #00b5ad, #0077b5);
+      z-index: 1;
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      animation: rotateBorder 8s linear infinite;
+    }
 
-        .typing-indicator {
-            color: var(--primary-color);
-            font-style: italic;
-            font-size: 12px;
-        }
+    @keyframes rotateBorder {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
-        /* Chat area */
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
+    .profile-img-container:hover::before {
+      opacity: 0.7;
+    }
 
-        .chat-header {
-            padding: 15px;
-            background-color: white;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-        }
+    .profile-img-container:hover {
+      transform: scale(1.05);
+      box-shadow: 
+        10px 10px 20px -1px rgba(0,0,0,0.4), 
+        -10px -10px 20px -1px rgba(255,255,255,0.8),
+        inset 5px 5px 15px rgba(0,0,0,0.1),
+        inset -5px -5px 15px rgba(255,255,255,0.5);
+    }
 
-        .chat-header-info {
-            margin-left: 12px;
-            flex: 1;
-        }
+    .profile-img:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 30px rgba(0,0,0,0.2);
+      border-color: rgba(255,255,255,0.5);
+    }
 
-        .chat-header-name {
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-        }
+    /* Shake and Bounce Animation */
+    @keyframes shakeAndBounce {
+      0%, 100% {
+        transform: translateX(0) translateY(0);
+      }
+      10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-10px) translateY(-10px);
+      }
+      20%, 40%, 60%, 80% {
+        transform: translateX(10px) translateY(10px);
+      }
+    }
 
-        .chat-header-status {
-            font-size: 13px;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-        }
+    .profile-img.shake-and-bounce {
+      animation: shakeAndBounce 0.5s ease 3;
+    }
 
-        .chat-header-status .online-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--online-color);
-            margin-right: 5px;
-        }
+    .transforming-text {
+      font-size: 1.5rem;
+      margin: 10px 0;
+      color: #333;
+      text-shadow: 7px 7px 10px -2px rgba(0,0,0,0.5);
+      transition: all 0.5s ease;
+      height: 2.5rem;
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+      text-align: center;
+    }
 
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            background-color: #e6ebee;
-            background-image: url('https://web.telegram.org/img/pattern.png');
-            background-attachment: fixed;
-        }
+    .transforming-text span {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      left: 0;
+      opacity: 0;
+      animation: textChange 12s infinite;
+      font-size: 1.5rem;
+      line-height: 1.2;
+      padding: 0 10px;
+      box-sizing: border-box;
+    }
 
-        .message {
-            max-width: 70%;
-            margin-bottom: 10px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            position: relative;
-            word-wrap: break-word;
-            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-        }
+    .transforming-text span:nth-child(1) {
+      animation-delay: 0s;
+    }
+    .transforming-text span:nth-child(2) {
+      animation-delay: 3s;
+    }
+    .transforming-text span:nth-child(3) {
+      animation-delay: 6s;
+    }
+    .transforming-text span:nth-child(4) {
+      animation-delay: 9s;
+    }
 
-        .received {
-            align-self: flex-start;
-            background-color: white;
-            border-top-left-radius: 0;
-        }
+    @keyframes textChange {
+      0% { opacity: 0; transform: translateY(20px); }
+      10% { opacity: 1; transform: translateY(0); }
+      20% { opacity: 1; transform: translateY(0); }
+      30% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 0; transform: translateY(-20px); }
+    }
 
-        .sent {
-            align-self: flex-end;
-            background-color: var(--message-bg);
-            border-top-right-radius: 0;
-        }
+    .bio {
+      font-size: 1.2rem;
+      color: #777;
+      text-shadow: inset 7px 7px 10px -2px rgba(0,0,0,0.5), inset -7px -7px 10px -2px rgba(255,255,255,0.7);
+      transition: all 0.5s ease;
+    }
 
-        .message-time {
-            font-size: 11px;
-            color: var(--text-secondary);
-            text-align: right;
-            margin-top: 4px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-        }
+    /* Social Media Icons */
+    .social-media {
+      margin: 30px 0;
+    }
 
-        .message-actions {
-            position: absolute;
-            right: 5px;
-            top: 5px;
-            display: none;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-            padding: 2px;
-        }
+    .social-media h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: #333;
+      transition: all 0.5s ease;
+    }
 
-        .message:hover .message-actions {
-            display: flex;
-        }
+    .icons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-        .message-action {
-            padding: 2px 5px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
+    .icons a {
+      color: #333;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      box-shadow: 7px 7px 17px -2px rgba(0,0,0,0.5), -7px -7px 17px -2px rgba(255,255,255,0.7);
+      border-radius: 50%;
+      padding: 8px;
+      background-color: #d1d9eb;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        .message-action:hover {
-            color: var(--primary-color);
-        }
+    .icons a:hover {
+      transform: translateY(-5px);
+      box-shadow: inset 1px 1px 8px -2px rgba(0,0,0,0.5), inset -2px -2px 8px -2px rgba(255,255,255,0.7);
+    }
 
-        .chat-input-container {
-            padding: 10px 15px;
-            background-color: white;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-        }
+    .icons a:hover i {
+      font-size: 1.8rem;
+    }
 
-        .input-tools {
-            display: flex;
-            align-items: center;
-            margin-right: 10px;
-        }
+    .fa-tiktok {
+      color: #000;
+    }
+    .fa-facebook {
+      color: #0077b5;
+    }
+    .fa-whatsapp {
+      color: green;
+    }
+    .fa-phone {
+      color: #25D366;
+    }
+    .fa-instagram {
+      color: #e1306c;
+    }
+    .fa-envelope {
+      color: #d44638;
+    }
 
-        .tool-button {
-            font-size: 20px;
-            color: var(--text-secondary);
-            margin: 0 5px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
+    /* Audio Grid Sections */
+    .audio-grid-section {
+      min-height: 100vh;
+      padding: 80px 20px;
+      display: none;
+    }
 
-        .tool-button:hover {
-            color: var(--primary-color);
-        }
+    .audio-grid-section.active {
+      display: block;
+    }
 
-        .record-button {
-            color: #f44336;
-            display: none;
-        }
+    .audio-grid-title {
+      font-size: 2.5rem;
+      color: #2c3e50;
+      margin-bottom: 40px;
+      text-align: center;
+    }
 
-        .input-wrapper {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            background-color: var(--secondary-color);
-            border-radius: 20px;
-            padding: 8px 15px;
-        }
+    .audio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-        .chat-input {
-            flex: 1;
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 15px;
-            max-height: 100px;
-            resize: none;
-            padding: 5px 0;
-        }
+    .audio-item {
+      background-color: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
 
-        .send-button {
-            font-size: 20px;
-            color: var(--primary-color);
-            margin-left: 10px;
-            cursor: pointer;
-            display: none;
-        }
+    .audio-item:hover {
+      transform: translateY(-5px);
+    }
 
-        /* Auth modal */
-        .auth-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
+    .audio-player {
+      width: 100%;
+      margin-bottom: 15px;
+    }
 
-        .auth-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
+    .audio-info h3 {
+      font-size: 1.2rem;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
 
-        .auth-title {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: var(--primary-color);
-        }
+    .audio-info p {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      margin-bottom: 5px;
+    }
 
-        .auth-input {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 16px;
-        }
+    .audio-date {
+      font-size: 0.8rem;
+      color: #95a5a6;
+      font-style: italic;
+    }
 
-        .auth-button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+    /* New Content Sections */
+    .content-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      opacity: 0;
+      transform: translateY(50px);
+      transition: all 0.8s ease;
+      background-color: #f9f9f9;
+    }
 
-        .auth-button:hover {
-            background-color: #0077b3;
-        }
+    .content-section.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-        /* Recording indicator */
-        .recording-indicator {
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            display: none;
-        }
+    .content-section:nth-child(even) {
+      background-color: #fff;
+    }
 
-        .recording-dot {
-            width: 10px;
-            height: 10px;
-            background-color: #f44336;
-            border-radius: 50%;
-            margin-right: 10px;
-            animation: pulse 1.5s infinite;
-        }
+    .content-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 50px;
+    }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
-        }
+    .content-image {
+      flex: 1;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      transform: scale(0.95);
+      transition: all 0.5s ease;
+    }
 
-        /* Media queries */
-        @media (max-width: 768px) {
-            .chat-container {
-                height: 100vh;
-                border-radius: 0;
-            }
-            .sidebar {
-                width: 100%;
-                display: none;
-            }
-            .sidebar.active {
-                display: flex;
-            }
-            .chat-area {
-                display: none;
-            }
-            .chat-area.active {
-                display: flex;
-            }
-        }
-    </style>
+    .content-section.active .content-image {
+      transform: scale(1);
+    }
+
+    .content-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .content-image:hover img {
+      transform: scale(1.05);
+    }
+
+    .content-text {
+      flex: 1;
+    }
+
+    .content-text h2 {
+      font-size: 2.5rem;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .content-text h2::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -10px;
+      width: 80px;
+      height: 4px;
+      background-color: #3498db;
+      border-radius: 2px;
+    }
+
+    .content-text p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    .content-quote {
+      font-style: italic;
+      font-size: 1.2rem;
+      color: #3498db;
+      padding-left: 20px;
+      border-left: 4px solid #3498db;
+      margin: 30px 0;
+    }
+
+    /* Next Section */
+    .next-section {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #ecf0f1;
+    }
+
+    .next-section h2 {
+      font-size: 3rem;
+      color: #2c3e50;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 80px;
+      right: 0;
+      height: 70px;
+      background-color: white;
+      box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .nav-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 100%;
+      color: #7f8c8d;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .nav-button i {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+
+    .nav-button span {
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .nav-button.active {
+      color: #3498db;
+    }
+
+    .nav-button:hover {
+      color: #3498db;
+      transform: translateY(-5px);
+    }
+
+    /* Form Modal */
+    .form-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .form-modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .form-container {
+      background-color: white;
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 500px;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .form-modal.active .form-container {
+      transform: translateY(0);
+    }
+
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .form-header h2 {
+      font-size: 1.5rem;
+      color: #2c3e50;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #7f8c8d;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-label {
+      display: block;
+      padding: 12px;
+      background-color: #f5f5f5;
+      border: 1px dashed #ddd;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .file-label:hover {
+      background-color: #e8f4fc;
+      border-color: #3498db;
+    }
+
+    .file-info {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+      margin-top: 5px;
+      text-align: center;
+    }
+
+    .submit-button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .submit-button:hover {
+      background-color: #2980b9;
+    }
+
+    /* Scroll Indicator */
+    .scroll-indicator {
+      position: fixed;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #bdc3c7;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .dot.active {
+      background-color: #3498db;
+      transform: scale(1.3);
+    }
+
+    /* Arena of Grace Text */
+    .top-loader-text {
+      position: fixed;
+      top: 20px;
+      left: 100px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      text-transform: uppercase;
+      z-index: 1001;
+      background-color: #0077b5;
+      padding: 10px 20px;
+      border-radius: 0 20px 20px 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      animation: slideIn 0.5s forwards;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .content-container {
+        flex-direction: column;
+        gap: 30px;
+      }
+      
+      .content-image,
+      .content-text {
+        flex: none;
+        width: 100%;
+      }
+      
+      .content-text h2 {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .section-title {
+        position: static;
+        width: 100%;
+        margin-bottom: 30px;
+        transform: none;
+        text-align: center;
+      }
+
+      .cards-container {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .card {
+        max-width: 100%;
+      }
+
+      .audio-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+      
+      .content-text h2 {
+        font-size: 1.8rem;
+      }
+      
+      .content-text p {
+        font-size: 1rem;
+      }
+      
+      .content-quote {
+        font-size: 1.1rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .menu-bar {
+        width: 60px;
+      }
+
+      .main-content {
+        margin-left: 60px;
+        width: calc(100% - 60px);
+      }
+
+      .bottom-nav {
+        left: 60px;
+      }
+
+      .section-title {
+        font-size: 2rem;
+      }
+
+      .audio-grid-title {
+        font-size: 2rem;
+      }
+
+      .top-loader-text {
+        left: 80px;
+        font-size: 0.8rem;
+        padding: 8px 15px;
+      }
+      
+      .content-section {
+        padding: 60px 20px;
+      }
+      
+      .content-text h2 {
+        font-size: 1.6rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .nav-button {
+        width: 60px;
+      }
+
+      .nav-button span {
+        display: none;
+      }
+
+      .card-image {
+        height: 200px;
+      }
+
+      .audio-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .top-loader-text {
+        left: 60px;
+        font-size: 0.7rem;
+        padding: 6px 12px;
+      }
+      
+      .content-section {
+        padding: 40px 20px;
+      }
+      
+      .content-text h2 {
+        font-size: 1.4rem;
+      }
+      
+      .content-quote {
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- Auth Modal -->
-    <div class="auth-modal" id="authModal">
-        <div class="auth-container">
-            <h2 class="auth-title">Enter Your Name</h2>
-            <input type="text" class="auth-input" id="usernameInput" placeholder="Your name" autofocus>
-            <button class="auth-button" id="authButton">Continue</button>
-        </div>
+  <!-- Menu Bar with Tap Roller -->
+  <div class="menu-bar">
+    <div class="tap-roller-container">
+      <div class="tap-roller" id="tap-roller"></div>
+      <div class="tap-handle"></div>
     </div>
+  </div>
 
-    <!-- Recording Indicator -->
-    <div class="recording-indicator" id="recordingIndicator">
-        <div class="recording-dot"></div>
-        <span>Recording...</span>
-    </div>
+  <!-- Arena of Grace Text -->
+  <div class="top-loader-text">Arena Of Grace</div>
 
-    <!-- Chat Container -->
-    <div class="chat-container" id="mainApp" style="display: none;">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="user-profile">
-                    <div class="user-avatar" id="userAvatar">
-                        <img id="userAvatarImg" src="" alt="User">
-                    </div>
-                    <div class="user-name" id="sidebarUserName"></div>
-                </div>
-                <div class="sidebar-icons">
-                    <span>🔍</span>
-                    <span>⋮</span>
-                </div>
-            </div>
-            <div class="search-bar">
-                <input type="text" placeholder="Search">
-            </div>
-            <div class="chat-list" id="chatList">
-                <!-- Chats will be loaded here -->
-            </div>
+  <!-- Scroll Indicator -->
+  <div class="scroll-indicator" id="scroll-indicator">
+    <div class="dot active" data-section="card-section"></div>
+    <div class="dot" data-section="jesus-section"></div>
+    <div class="dot" data-section="faith-section"></div>
+    <div class="dot" data-section="giving-section"></div>
+    <div class="dot" data-section="next-section"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Section with Cards -->
+    <div class="section" id="card-section">
+      <h1 class="section-title" id="section-title">
+        <span>Divine</span>
+        <span>Inspiration</span>
+        <span>For</span>
+        <span>Your</span>
+        <span>Journey</span>
+      </h1>
+      
+      <div class="profile-section">
+        <div class="profile-img-container">
+          <img src="profile.jpg" alt="Profile Picture" class="profile-img">
         </div>
-
-        <!-- Chat Area -->
-        <div class="chat-area" id="chatArea">
-            <div class="chat-header">
-                <div class="user-avatar">
-                    <img id="chatAvatar" src="https://randomuser.me/api/portraits/men/1.jpg" alt="Chat">
-                    <div class="online-status" id="onlineStatus"></div>
-                </div>
-                <div class="chat-header-info">
-                    <div class="chat-header-name">
-                        <span id="chatName">Telegram Chat</span>
-                    </div>
-                    <div class="chat-header-status">
-                        <div class="online-dot" id="statusDot"></div>
-                        <span id="statusText">online</span>
-                        <span id="typingIndicator" class="typing-indicator"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be loaded here -->
-            </div>
-            <div class="chat-input-container">
-                <div class="input-tools">
-                    <div class="tool-button" id="attachButton">📎</div>
-                    <div class="tool-button record-button" id="recordButton">🎙️</div>
-                </div>
-                <div class="input-wrapper">
-                    <textarea class="chat-input" id="messageInput" placeholder="Write a message..." rows="1"></textarea>
-                </div>
-                <div class="send-button" id="sendButton">➤</div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Supabase configuration - USING YOUR CREDENTIALS
-        const SUPABASE_URL = 'https://vcycthqovwhyyhorsvnf.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjeWN0aHFvdndoeXlob3Jzdm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzMjEwNDIsImV4cCI6MjA1OTg5NzA0Mn0.qSi4C05196OxQIQdcyuKmh4FFZCnKKxxQKQJOYlmOvs';
+        <h1 class="transforming-text">
+          <span>I Am The Konkonsa Prophet</span>
+          <span>Man Of God</span>
+          <span>Servant Of The Most High</span>
+          <span>Messenger Of Truth</span>
+        </h1>
+        <p class="bio">Prophet | Martin Osei | Mensah</p>
         
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        <div class="social-media">
+          <div class="icons">
+            <a href="https://www.tiktok.com/@prophet.osei?is_from_webapp=1&sender_device=pc" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="" target="_blank"><i class="fab fa-facebook"></i></a>
+            <a href="https://wa.me/+32492255205" target="_blank"><i class="fab fa-whatsapp"></i></a>
+            <a href="tel:+32492255205" target="_blank"><i class="fas fa-phone"></i></a>
+            <a href="" target="_blank"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cards-container" id="cards-container">
+        <div class="card active" id="card1">
+          <img src="https://source.unsplash.com/random/600x400?faith" alt="Faith" class="card-image">
+          <div class="card-content">
+            <h3>Faith & Belief</h3>
+            <p>Discover the power of unwavering faith and how it can transform your life. Learn from ancient wisdom and modern testimonies.</p>
+          </div>
+        </div>
+        
+        <div class="card" id="card2">
+          <img src="https://source.unsplash.com/random/600x400?prayer" alt="Prayer" class="card-image">
+          <div class="card-content">
+            <h3>Prayer & Meditation</h3>
+            <p>Explore the profound effects of prayer and meditation on your spiritual and physical well-being. Techniques for deeper connection.</p>
+          </div>
+        </div>
+        
+        <div class="card" id="card3">
+          <img src="https://source.unsplash.com/random/600x400?community" alt="Community" class="card-image">
+          <div class="card-content">
+            <h3>Community & Fellowship</h3>
+            <p>The importance of spiritual community in your growth journey. Find your tribe and grow together in faith and purpose.</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        // DOM elements
-        const authModal = document.getElementById('authModal');
-        const usernameInput = document.getElementById('usernameInput');
-        const authButton = document.getElementById('authButton');
-        const mainApp = document.getElementById('mainApp');
-        const userAvatarImg = document.getElementById('userAvatarImg');
-        const sidebarUserName = document.getElementById('sidebarUserName');
-        const chatList = document.getElementById('chatList');
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const recordButton = document.getElementById('recordButton');
-        const attachButton = document.getElementById('attachButton');
-        const recordingIndicator = document.getElementById('recordingIndicator');
-        const chatName = document.getElementById('chatName');
-        const statusText = document.getElementById('statusText');
-        const statusDot = document.getElementById('statusDot');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const onlineStatus = document.getElementById('onlineStatus');
+    <!-- Sermons Section -->
+    <div class="audio-grid-section" id="sermons-section">
+      <h2 class="audio-grid-title">Sermons</h2>
+      <div class="audio-grid">
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>The Power of Faith</h3>
+            <p>Discover how faith can move mountains in your life and bring miracles.</p>
+            <p class="audio-date">June 15, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Walking in Love</h3>
+            <p>Learn how to walk in love and transform your relationships.</p>
+            <p class="audio-date">June 8, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Overcoming Challenges</h3>
+            <p>Biblical principles for overcoming life's toughest challenges.</p>
+            <p class="audio-date">June 1, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>The Joy of Giving</h3>
+            <p>Discover the blessings that come from a generous heart.</p>
+            <p class="audio-date">May 25, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Finding Your Purpose</h3>
+            <p>God's plan for your life and how to discover your divine purpose.</p>
+            <p class="audio-date">May 18, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Spiritual Warfare</h3>
+            <p>Understanding and engaging in spiritual battles effectively.</p>
+            <p class="audio-date">May 11, 2023</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        // App state
-        let currentUser = null;
-        let currentChat = null;
-        let isRecording = false;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let typingTimeout = null;
-        let onlineInterval = null;
+    <!-- Testimonies Section -->
+    <div class="audio-grid-section" id="testimonies-section">
+      <h2 class="audio-grid-title">Testimonies</h2>
+      <div class="audio-grid">
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Healing Miracle</h3>
+            <p>How God healed me from a chronic illness after years of suffering.</p>
+            <p class="audio-date">June 12, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Financial Breakthrough</h3>
+            <p>From debt to abundance - God's provision in impossible situations.</p>
+            <p class="audio-date">June 5, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Family Restoration</h3>
+            <p>How prayer brought my family back together after years of separation.</p>
+            <p class="audio-date">May 29, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Deliverance Story</h3>
+            <p>Freedom from addiction and spiritual oppression through Christ.</p>
+            <p class="audio-date">May 22, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Career Blessing</h3>
+            <p>How God opened doors no man could shut in my professional life.</p>
+            <p class="audio-date">May 15, 2023</p>
+          </div>
+        </div>
+        
+        <div class="audio-item">
+          <audio controls class="audio-player">
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info">
+            <h3>Answered Prayer</h3>
+            <p>After years of waiting, God answered in ways I never imagined.</p>
+            <p class="audio-date">May 8, 2023</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        // Initialize the app
-        async function initApp() {
-            // Check if user exists in localStorage
-            const savedUser = localStorage.getItem('telegramChatUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                authModal.style.display = 'none';
-                mainApp.style.display = 'flex';
-                setupUser();
-                setupChat();
-            } else {
-                authModal.style.display = 'flex';
-            }
+    <!-- Jesus Section -->
+    <div class="content-section" id="jesus-section">
+      <div class="content-container">
+        <div class="content-image">
+          <img src="https://source.unsplash.com/random/800x600?jesus" alt="Jesus Christ">
+        </div>
+        <div class="content-text">
+          <h2>Jesus Christ: Our Savior</h2>
+          <p>Jesus Christ is the central figure of Christianity, the Son of God who came to earth to save humanity from sin. Through His life, death, and resurrection, He demonstrated God's infinite love and mercy toward us.</p>
+          <p>Jesus taught us how to live in accordance with God's will, showing compassion to the poor, healing the sick, and forgiving sinners. His teachings continue to inspire millions around the world to live lives of faith, hope, and love.</p>
+          <div class="content-quote">
+            "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." - John 3:16
+          </div>
+        </div>
+      </div>
+    </div>
 
-            // Set up event listeners
-            setupEventListeners();
-        }
+    <!-- Faith Section -->
+    <div class="content-section" id="faith-section">
+      <div class="content-container">
+        <div class="content-text">
+          <h2>The Power of Faith</h2>
+          <p>Faith is the foundation of our relationship with God. It's the assurance of things hoped for, the conviction of things not seen. Through faith, we can overcome obstacles, face challenges, and experience God's miracles in our lives.</p>
+          <p>Developing strong faith requires daily practice - through prayer, studying Scripture, and applying God's Word in our lives. As our faith grows, we become more attuned to God's voice and more confident in His promises.</p>
+          <div class="content-quote">
+            "Now faith is confidence in what we hope for and assurance about what we do not see." - Hebrews 11:1
+          </div>
+        </div>
+        <div class="content-image">
+          <img src="https://source.unsplash.com/random/800x600?faith" alt="Faith">
+        </div>
+      </div>
+    </div>
 
-        // Set up user interface
-        function setupUser() {
-            // Set user avatar and name
-            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=random`;
-            userAvatarImg.src = avatarUrl;
-            sidebarUserName.textContent = currentUser.name;
+    <!-- Giving Section -->
+    <div class="content-section" id="giving-section">
+      <div class="content-container">
+        <div class="content-image">
+          <img src="https://source.unsplash.com/random/800x600?generosity" alt="Giving">
+        </div>
+        <div class="content-text">
+          <h2>The Blessing of Giving</h2>
+          <p>Giving is a fundamental principle of Christian living. When we give cheerfully and generously, we reflect God's own nature, for He is the ultimate giver. Our offerings support the work of the ministry and help those in need.</p>
+          <p>God promises to bless those who give with a pure heart. The Bible teaches that we reap what we sow - when we give generously, we open ourselves to receive God's abundant blessings in return.</p>
+          <div class="content-quote">
+            "Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver." - 2 Corinthians 9:7
+          </div>
+        </div>
+      </div>
+    </div>
 
-            // Set up online status
-            updateOnlineStatus(true);
-            onlineInterval = setInterval(() => updateOnlineStatus(true), 30000); // Update every 30 seconds
-        }
+    <!-- Next Section -->
+    <div class="next-section" id="next-section">
+      <h2>Continue Your Spiritual Journey</h2>
+    </div>
+  </div>
 
-        // Set up chat interface
-        async function setupChat() {
-            // For demo purposes, we'll use a single chat
-            currentChat = {
-                id: 'global',
-                name: 'Global Chat',
-                avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
-                isOnline: true
-            };
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <a href="#" class="nav-button active" id="home-button">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="#" class="nav-button" id="sermons-button">
+      <i class="fas fa-church"></i>
+      <span>Sermons</span>
+    </a>
+    <a href="#" class="nav-button" id="testimonies-button">
+      <i class="fas fa-hand-holding-heart"></i>
+      <span>Testimonies</span>
+    </a>
+    <a href="#" class="nav-button" id="chat-button">
+      <i class="fas fa-comments"></i>
+      <span>Chat</span>
+    </a>
+    <a href="#" class="nav-button" id="others-button">
+      <i class="fas fa-ellipsis-h"></i>
+      <span>Others</span>
+    </a>
+  </div>
 
-            chatName.textContent = currentChat.name;
-            chatAvatar.src = currentChat.avatar;
-            updateChatStatus(currentChat.isOnline);
+  <!-- Form Modal -->
+  <div class="form-modal" id="form-modal">
+    <div class="form-container">
+      <div class="form-header">
+        <h2>Contact Form</h2>
+        <button class="close-button" id="close-button">&times;</button>
+      </div>
+      <form id="contact-form">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="contact">Contact</label>
+          <input type="text" id="contact" name="contact" required>
+        </div>
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" required></textarea>
+        </div>
+        <div class="form-group">
+          <input type="file" id="file-input" class="file-input" name="attachment">
+          <label for="file-input" class="file-label">Click to attach files</label>
+          <div class="file-info">Attach screenshots or files of offerings if any</div>
+        </div>
+        <button type="submit" class="submit-button">Submit</button>
+      </form>
+    </div>
+  </div>
 
-            // Load messages
-            await loadMessages();
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elements
+      const tapRoller = document.getElementById('tap-roller');
+      const sectionTitle = document.getElementById('section-title');
+      const titleSpans = document.querySelectorAll('.section-title span');
+      const cards = [document.getElementById('card1'), document.getElementById('card2'), document.getElementById('card3')];
+      const cardSection = document.getElementById('card-section');
+      const nextSection = document.getElementById('next-section');
+      const formModal = document.getElementById('form-modal');
+      const othersButton = document.getElementById('others-button');
+      const closeButton = document.getElementById('close-button');
+      const navButtons = document.querySelectorAll('.nav-button');
+      const scrollIndicator = document.getElementById('scroll-indicator');
+      const dots = document.querySelectorAll('.dot');
+      const cardsContainer = document.getElementById('cards-container');
+      const homeButton = document.getElementById('home-button');
+      const sermonsButton = document.getElementById('sermons-button');
+      const testimoniesButton = document.getElementById('testimonies-button');
+      const sermonsSection = document.getElementById('sermons-section');
+      const testimoniesSection = document.getElementById('testimonies-section');
+      const contentSections = document.querySelectorAll('.content-section');
+      const allSections = [cardSection, sermonsSection, testimoniesSection, ...contentSections, nextSection];
+      const profileImg = document.querySelector('.profile-img');
+      const backgroundMusic = new Audio('music.mp3');
+      let isMusicPlaying = false;
 
-            // Subscribe to real-time updates
-            subscribeToRealtime();
-        }
+      // Scroll Animation Variables
+      let currentCard = 0;
+      let titleAnimationDone = false;
+      let isScrolling = false;
+      let scrollTimeout;
 
-        // Set up event listeners
-        function setupEventListeners() {
-            // Auth modal
-            authButton.addEventListener('click', handleAuth);
-            usernameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleAuth();
-            });
-
-            // Message input
-            messageInput.addEventListener('input', handleInput);
-            messageInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-
-            // Send button
-            sendButton.addEventListener('click', sendMessage);
-
-            // Record button
-            recordButton.addEventListener('mousedown', startRecording);
-            recordButton.addEventListener('mouseup', stopRecording);
-            recordButton.addEventListener('mouseleave', stopRecording);
-
-            // Attach button
-            attachButton.addEventListener('click', () => {
-                alert('File attachment functionality would be implemented here');
-            });
-
-            // Auto-resize textarea
-            messageInput.addEventListener('input', () => {
-                messageInput.style.height = 'auto';
-                messageInput.style.height = (messageInput.scrollHeight) + 'px';
-            });
-        }
-
-        // Handle authentication
-        async function handleAuth() {
-            const username = usernameInput.value.trim();
-            if (!username) return;
-
-            try {
-                // Create user in Supabase
-                const { data, error } = await supabase
-                    .from('users')
-                    .upsert({
-                        name: username,
-                        last_online: new Date().toISOString(),
-                        is_online: true
-                    }, { onConflict: 'name' })
-                    .select()
-                    .single();
-
-                if (error) throw error;
-
-                currentUser = {
-                    id: data.id,
-                    name: data.name,
-                    isOnline: true
-                };
-
-                // Save user to localStorage
-                localStorage.setItem('telegramChatUser', JSON.stringify(currentUser));
-
-                // Hide auth modal and show main app
-                authModal.style.display = 'none';
-                mainApp.style.display = 'flex';
-                
-                // Setup user and chat
-                setupUser();
-                setupChat();
-            } catch (error) {
-                console.error('Authentication error:', error);
-                alert('Failed to authenticate. Please try again.');
-            }
-        }
-
-        // Handle input changes (for typing indicator)
-        function handleInput() {
-            if (messageInput.value.trim()) {
-                sendButton.style.display = 'block';
-                recordButton.style.display = 'none';
-            } else {
-                sendButton.style.display = 'none';
-                recordButton.style.display = 'block';
-            }
-
-            // Send typing indicator
-            sendTypingIndicator(true);
-
-            // Clear previous timeout
-            if (typingTimeout) clearTimeout(typingTimeout);
-
-            // Set timeout to stop typing indicator after 3 seconds
-            typingTimeout = setTimeout(() => {
-                sendTypingIndicator(false);
-            }, 3000);
-        }
-
-        // Send typing indicator
-        async function sendTypingIndicator(isTyping) {
-            try {
-                await supabase
-                    .from('typing_indicators')
-                    .upsert({
-                        user_id: currentUser.id,
-                        chat_id: currentChat.id,
-                        is_typing: isTyping,
-                        timestamp: new Date().toISOString()
-                    });
-            } catch (error) {
-                console.error('Error sending typing indicator:', error);
-            }
-        }
-
-        // Load messages
-        async function loadMessages() {
-            try {
-                const { data: messages, error } = await supabase
-                    .from('messages')
-                    .select('*')
-                    .eq('chat_id', currentChat.id)
-                    .order('created_at', { ascending: true });
-
-                if (error) throw error;
-
-                renderMessages(messages);
-            } catch (error) {
-                console.error('Error loading messages:', error);
-            }
-        }
-
-        // Render messages
-        function renderMessages(messages) {
-            chatMessages.innerHTML = '';
-
-            if (!messages || messages.length === 0) {
-                const emptyMessage = document.createElement('div');
-                emptyMessage.className = 'message received';
-                emptyMessage.style.alignSelf = 'center';
-                emptyMessage.style.backgroundColor = 'transparent';
-                emptyMessage.style.boxShadow = 'none';
-                emptyMessage.style.textAlign = 'center';
-                emptyMessage.style.color = 'var(--text-secondary)';
-                emptyMessage.innerHTML = '<div>No messages yet. Start the conversation!</div>';
-                chatMessages.appendChild(emptyMessage);
-                return;
-            }
-
-            messages.forEach(message => {
-                const isCurrentUser = message.user_id === currentUser.id;
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
-                
-                // Format time
-                const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                messageDiv.innerHTML = `
-                    <div class="message-text">${message.text}</div>
-                    <div class="message-time">
-                        ${time}
-                        ${isCurrentUser ? `
-                            <span class="message-actions">
-                                <span class="message-action edit-message" data-id="${message.id}">✏️</span>
-                                <span class="message-action delete-message" data-id="${message.id}">🗑️</span>
-                            </span>
-                        ` : ''}
-                    </div>
-                `;
-                chatMessages.appendChild(messageDiv);
-            });
-
-            // Scroll to bottom
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Add event listeners for message actions
-            document.querySelectorAll('.edit-message').forEach(btn => {
-                btn.addEventListener('click', (e) => editMessage(e.target.dataset.id));
-            });
-
-            document.querySelectorAll('.delete-message').forEach(btn => {
-                btn.addEventListener('click', (e) => deleteMessage(e.target.dataset.id));
-            });
-        }
-
-        // Send message
-        async function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text) return;
-
-            try {
-                // Create message in Supabase
-                const { data, error } = await supabase
-                    .from('messages')
-                    .insert([
-                        {
-                            chat_id: currentChat.id,
-                            user_id: currentUser.id,
-                            text: text,
-                            is_edited: false
-                        }
-                    ])
-                    .select();
-
-                if (error) throw error;
-
-                // Clear input
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
-                sendButton.style.display = 'none';
-                recordButton.style.display = 'block';
-
-                // Stop typing indicator
-                sendTypingIndicator(false);
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Failed to send message. Please try again.');
-            }
-        }
-
-        // Edit message
-        async function editMessage(messageId) {
-            const message = messages.find(m => m.id === messageId);
-            if (!message) return;
-
-            const messageText = prompt('Edit your message:', message.text);
-            if (!messageText) return;
-
-            try {
-                const { error } = await supabase
-                    .from('messages')
-                    .update({
-                        text: messageText,
-                        is_edited: true,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', messageId);
-
-                if (error) throw error;
-            } catch (error) {
-                console.error('Error editing message:', error);
-                alert('Failed to edit message. Please try again.');
-            }
-        }
-
-        // Delete message
-        async function deleteMessage(messageId) {
-            if (!confirm('Are you sure you want to delete this message?')) return;
-
-            try {
-                const { error } = await supabase
-                    .from('messages')
-                    .delete()
-                    .eq('id', messageId);
-
-                if (error) throw error;
-            } catch (error) {
-                console.error('Error deleting message:', error);
-                alert('Failed to delete message. Please try again.');
-            }
-        }
-
-        // Start recording
-        async function startRecording() {
-            try {
-                isRecording = true;
-                recordingIndicator.style.display = 'flex';
-                
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) {
-                        audioChunks.push(e.data);
-                    }
-                };
-
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    alert('Audio recording complete. In a real app, this would be sent to Supabase Storage.');
-                };
-
-                mediaRecorder.start();
-            } catch (error) {
-                console.error('Error starting recording:', error);
-                isRecording = false;
-                recordingIndicator.style.display = 'none';
-                alert('Microphone access denied or not available.');
-            }
-        }
-
-        // Stop recording
-        function stopRecording() {
-            if (!isRecording) return;
-            
-            isRecording = false;
-            recordingIndicator.style.display = 'none';
-            
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-            }
-        }
-
-        // Update online status
-        async function updateOnlineStatus(isOnline) {
-            if (!currentUser) return;
-            
-            currentUser.isOnline = isOnline;
-            
-            try {
-                await supabase
-                    .from('users')
-                    .update({
-                        is_online: isOnline,
-                        last_online: new Date().toISOString()
-                    })
-                    .eq('id', currentUser.id);
-            } catch (error) {
-                console.error('Error updating online status:', error);
-            }
-        }
-
-        // Update chat status
-        function updateChatStatus(isOnline) {
-            if (isOnline) {
-                statusText.textContent = 'online';
-                statusDot.style.backgroundColor = 'var(--online-color)';
-                onlineStatus.style.display = 'block';
-            } else {
-                statusText.textContent = 'last seen recently';
-                statusDot.style.backgroundColor = 'transparent';
-                onlineStatus.style.display = 'none';
-            }
-        }
-
-        // Subscribe to real-time updates
-        function subscribeToRealtime() {
-            // Messages
-            supabase
-                .channel('messages')
-                .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table: 'messages' },
-                    (payload) => {
-                        if (payload.new.chat_id === currentChat.id) {
-                            loadMessages();
-                        }
-                    }
-                )
-                .subscribe();
-
-            // Typing indicators
-            supabase
-                .channel('typing')
-                .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table: 'typing_indicators' },
-                    (payload) => {
-                        if (payload.new.chat_id === currentChat.id && payload.new.user_id !== currentUser.id) {
-                            if (payload.new.is_typing) {
-                                typingIndicator.textContent = 'typing...';
-                            } else {
-                                typingIndicator.textContent = '';
-                            }
-                        }
-                    }
-                )
-                .subscribe();
-
-            // Online status
-            supabase
-                .channel('online')
-                .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table: 'users' },
-                    (payload) => {
-                        if (payload.new.id !== currentUser.id) {
-                            updateChatStatus(payload.new.is_online);
-                        }
-                    }
-                )
-                .subscribe();
-        }
-
-        // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initApp);
-
-        // Update online status when window is focused/blurred
-        window.addEventListener('focus', () => updateOnlineStatus(true));
-        window.addEventListener('blur', () => updateOnlineStatus(false));
-
-        // Clean up when page is unloaded
-        window.addEventListener('beforeunload', () => {
-            if (currentUser) {
-                updateOnlineStatus(false);
-                clearInterval(onlineInterval);
-            }
+      // Initialize cards
+      function initCards() {
+        cards.forEach((card, index) => {
+          if (index !== 0) {
+            card.style.display = 'none';
+          } else {
+            card.style.display = 'block';
+            card.classList.add('active');
+          }
         });
-    </script>
+      }
+
+      // Show section and hide others
+      function showSection(section) {
+        allSections.forEach(sec => {
+          sec.style.display = 'none';
+          sec.classList.remove('active');
+        });
+        
+        section.style.display = 'block';
+        section.classList.add('active');
+        window.scrollTo(0, 0);
+      }
+
+      // Tap Roller Animation
+      function updateTapRoller(scrollPercentage) {
+        const rollerHeight = scrollPercentage * (window.innerHeight - 140);
+        tapRoller.style.height = `${40 + rollerHeight}px`;
+      }
+
+      // Animate Title
+      function animateTitle() {
+        if (titleAnimationDone) return;
+        
+        titleSpans.forEach((span, index) => {
+          setTimeout(() => {
+            span.style.opacity = '1';
+            span.style.transform = 'translateY(0)';
+          }, index * 200);
+        });
+        
+        titleAnimationDone = true;
+      }
+
+      // Show Card
+      function showCard(index) {
+        if (index < 0 || index >= cards.length) return;
+        
+        // Hide all cards
+        cards.forEach(card => {
+          card.classList.remove('active');
+          setTimeout(() => {
+            card.style.display = 'none';
+          }, 300);
+        });
+        
+        // Show selected card
+        cards[index].style.display = 'block';
+        setTimeout(() => {
+          cards[index].classList.add('active');
+        }, 50);
+        
+        currentCard = index;
+      }
+
+      // Update Scroll Indicator
+      function updateScrollIndicator() {
+        const scrollPosition = window.scrollY;
+        const windowHeight = window.innerHeight;
+        
+        // Reset all dots
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        // Determine which section is in view
+        allSections.forEach((section, index) => {
+          const sectionTop = section.offsetTop;
+          const sectionBottom = sectionTop + section.offsetHeight;
+          
+          if (scrollPosition >= sectionTop - windowHeight/3 && scrollPosition < sectionBottom - windowHeight/3) {
+            dots[index].classList.add('active');
+          }
+        });
+      }
+
+      // Handle Wheel Event
+      function handleWheel(e) {
+        if (isScrolling) return;
+        
+        isScrolling = true;
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          isScrolling = false;
+        }, 800);
+        
+        if (e.deltaY > 0) {
+          // Scroll down
+          if (currentCard < cards.length - 1) {
+            showCard(currentCard + 1);
+          } else {
+            // Scroll to next section
+            const currentSectionIndex = Array.from(allSections).findIndex(section => 
+              section.getBoundingClientRect().top >= 0 && 
+              section.getBoundingClientRect().top < window.innerHeight
+            );
+            
+            if (currentSectionIndex < allSections.length - 1) {
+              allSections[currentSectionIndex + 1].scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+        } else {
+          // Scroll up
+          if (currentCard > 0) {
+            showCard(currentCard - 1);
+          } else {
+            // Scroll to previous section
+            const currentSectionIndex = Array.from(allSections).findIndex(section => 
+              section.getBoundingClientRect().top >= 0 && 
+              section.getBoundingClientRect().top < window.innerHeight
+            );
+            
+            if (currentSectionIndex > 0) {
+              allSections[currentSectionIndex - 1].scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+        }
+        
+        e.preventDefault();
+      }
+
+      // Handle Dot Click
+      function handleDotClick(e) {
+        const section = e.target.getAttribute('data-section');
+        document.getElementById(section).scrollIntoView({ behavior: 'smooth' });
+      }
+
+      // Form Modal Toggle
+      othersButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        formModal.classList.add('active');
+      });
+
+      closeButton.addEventListener('click', function() {
+        formModal.classList.remove('active');
+      });
+
+      // Navigation Buttons
+      homeButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        navButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        showSection(cardSection);
+      });
+
+      sermonsButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        navButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        showSection(sermonsSection);
+      });
+
+      testimoniesButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        navButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        showSection(testimoniesSection);
+      });
+
+      // Profile Image Click - Music Toggle
+      profileImg.addEventListener('click', function() {
+        if (isMusicPlaying) {
+          backgroundMusic.pause();
+          isMusicPlaying = false;
+        } else {
+          backgroundMusic.play().catch(e => console.log("Auto-play prevented:", e));
+          isMusicPlaying = true;
+        }
+        
+        // Add shake animation
+        profileImg.classList.add('shake-and-bounce');
+        setTimeout(() => {
+          profileImg.classList.remove('shake-and-bounce');
+        }, 1500);
+      });
+
+      // Form Submission
+      document.getElementById('contact-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Form submitted successfully!');
+        formModal.classList.remove('active');
+        this.reset();
+      });
+
+      // Dot Click Events
+      dots.forEach(dot => {
+        dot.addEventListener('click', handleDotClick);
+      });
+
+      // Intersection Observer for content sections
+      const observerOptions = {
+        threshold: 0.1
+      };
+
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          } else {
+            entry.target.classList.remove('active');
+          }
+        });
+      }, observerOptions);
+
+      contentSections.forEach(section => {
+        observer.observe(section);
+      });
+
+      // Scroll Event Listener
+      window.addEventListener('scroll', function() {
+        const scrollPosition = window.scrollY;
+        const cardSectionTop = cardSection.offsetTop;
+        const cardSectionHeight = cardSection.offsetHeight;
+        const windowHeight = window.innerHeight;
+        
+        // Calculate scroll percentage for tap roller
+        const maxScroll = cardSectionHeight - windowHeight;
+        const scrollPercentage = Math.min(Math.max((scrollPosition - cardSectionTop) / maxScroll, 0), 1);
+        updateTapRoller(scrollPercentage);
+        
+        // Update scroll indicator
+        updateScrollIndicator();
+      });
+
+      // Wheel Event Listener for Card Swiping
+      cardsContainer.addEventListener('wheel', handleWheel, { passive: false });
+
+      // Touch Events for Mobile Swiping
+      let touchStartX = 0;
+      let touchStartY = 0;
+      
+      cardsContainer.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+      
+      cardsContainer.addEventListener('touchend', function(e) {
+        if (isScrolling) return;
+        
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const diffX = touchStartX - touchEndX;
+        const diffY = touchStartY - touchEndY;
+        
+        // Check if it's a horizontal swipe
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX > 50) {
+            // Swipe left - next card
+            if (currentCard < cards.length - 1) {
+              showCard(currentCard + 1);
+            } else {
+              const currentSectionIndex = Array.from(allSections).findIndex(section => 
+                section.getBoundingClientRect().top >= 0 && 
+                section.getBoundingClientRect().top < window.innerHeight
+              );
+              
+              if (currentSectionIndex < allSections.length - 1) {
+                allSections[currentSectionIndex + 1].scrollIntoView({ behavior: 'smooth' });
+              }
+            }
+          } else if (diffX < -50) {
+            // Swipe right - previous card
+            if (currentCard > 0) {
+              showCard(currentCard - 1);
+            } else {
+              const currentSectionIndex = Array.from(allSections).findIndex(section => 
+                section.getBoundingClientRect().top >= 0 && 
+                section.getBoundingClientRect().top < window.innerHeight
+              );
+              
+              if (currentSectionIndex > 0) {
+                allSections[currentSectionIndex - 1].scrollIntoView({ behavior: 'smooth' });
+              }
+            }
+          }
+        }
+      }, { passive: true });
+
+      // Initial Animations
+      initCards();
+      animateTitle();
+      showCard(0);
+      showSection(cardSection);
+    });
+  </script>
 </body>
 </html>
